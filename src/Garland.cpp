@@ -26,7 +26,7 @@
  * Author      : MarMarAba
  * Version     : 0.5
  * Copyright   : Copyright (c) 2014 MarMarAba
- * Description : Implementation of the functions for the class Garland
+ * Description : Implementation of the functions for the class Garland.
  * ============================================================================
  */
 
@@ -37,151 +37,149 @@
 
 Garland::Garland (uint16_t port)
 {
-	initializeGarland("0.0.0.0", port);
+  initializeGarland("0.0.0.0", port);
 }
 
 Garland::Garland (const char * bind_address, uint16_t port)
 {
-	initializeGarland(bind_address, port);
+  initializeGarland(bind_address, port);
 }
 
 Garland::~Garland ()
 {
-	stopGarland();
+  stopServer();
 
-	// Free routes
-	while (currentContext.routes != NULL)
-	{
-		free(currentContext.routes->pattern);
-		currentContext.routes = currentContext.routes->next;
-	}
+  // Free routes
+  while (currentContext.routes != NULL)
+  {
+    Route * prev_route = currentContext.routes;
+    currentContext.routes = currentContext.routes->next;
+    delete prev_route;
+  }
 
-	evhttp_free(httpServer);
-	event_base_free(eventBase);
+  evhttp_free(httpServer);
+  event_base_free(eventBase);
 }
 
-void Garland::startGarland ()
+void Garland::startServer ()
 {
-	if (!serverRunning)
-	{
-		serverRunning = true;
+  if (!serverRunning)
+  {
+    serverRunning = true;
 
-		if (blockingServer)
-		{
-			launchEventloop();
-		}
-		else
-		{
-			std::thread loop_thread(&Garland::launchEventloop, this);
-			loop_thread.detach();
-		}
-	}
+    if (blockingServer)
+    {
+      launchEventloop();
+    }
+    else
+    {
+      std::thread loop_thread(&Garland::launchEventloop, this);
+      loop_thread.detach();
+    }
+  }
 }
 
-void Garland::stopGarland ()
+void Garland::stopServer ()
 {
-	if (serverRunning)
-	{
-		event_base_loopbreak(eventBase);
-		serverRunning = false;
-	}
+  if (serverRunning)
+  {
+    event_base_loopbreak(eventBase);
+    serverRunning = false;
+  }
 }
 
 void Garland::initializeGarland (const char * bind_address, uint16_t port)
 {
-	blockingServer = true;
-	serverRunning = false;
+  blockingServer = true;
+  serverRunning = false;
 
-	currentContext.port = port;
-	currentContext.routes = NULL;
-	RequestHandler voidHandler_ptr = voidHandler;
+  currentContext.port = port;
+  currentContext.routes = NULL;
+  RequestHandler voidHandler_ptr = voidHandler;
 
-	currentContext.routeNotFound = *voidHandler_ptr;
+  currentContext.routeNotFound = *voidHandler_ptr;
 
-	eventBase = event_base_new();
-	httpServer = evhttp_new(eventBase);
+  eventBase = event_base_new();
+  httpServer = evhttp_new(eventBase);
 
-	evhttp_bind_socket(httpServer, bind_address, currentContext.port);
-	evhttp_set_gencb(httpServer, newRequestCB, &currentContext);
+  evhttp_bind_socket(httpServer, bind_address, currentContext.port);
+  evhttp_set_gencb(httpServer, newRequestCB, &currentContext);
 }
 
 void Garland::launchEventloop ()
 {
-	event_base_loop(eventBase, 0);
-
-	serverRunning = false;
+  event_base_loop(eventBase, 0);
 }
 
 void Garland::voidHandler (Request * request, Response * response)
 {
-	response->code = HTTP_NOTFOUND;
-	response->setBody("Not found");
+  response->code = HTTP_NOTFOUND;
+  response->setBody("Not found");
 }
 
-void Garland::newRequestCB (struct evhttp_request * ev_req,
-		void * context)
+void Garland::newRequestCB (struct evhttp_request * ev_req, void * context)
 {
-	struct timeval t0, t1, tr;
+  struct timeval t0, t1, tr;
 
-	GarlandContext * inUseContext = (GarlandContext *) context;
+  GarlandContext * inUseContext = (GarlandContext *) context;
 
-	gettimeofday(&t0, NULL);
+  gettimeofday(&t0, NULL);
 
-	Request * request = new Request(ev_req);
-	Response * response = new Response(evbuffer_new());
+  Request * request = new Request(ev_req);
+  Response * response = new Response(evbuffer_new());
 
-	Route * matched_route = inUseContext->routes->matching_route(request);
+  Route * matched_route = inUseContext->routes->matching_route(request);
 
-	if (matched_route)
-	{
-		matched_route->handler(request, response);
-		evhttp_send_reply(ev_req, response->code, "OK", response->local_buffer);
-	}
-	else
-	{
-		inUseContext->routeNotFound(request, response);
-		evhttp_send_reply(ev_req, HTTP_NOTFOUND, "Not Found",
-				response->local_buffer);
-	}
+  if (matched_route)
+  {
+    matched_route->handler(request, response);
+    evhttp_send_reply(ev_req, response->code, "OK", response->local_buffer);
+  }
+  else
+  {
+    inUseContext->routeNotFound(request, response);
+    evhttp_send_reply(ev_req, HTTP_NOTFOUND, "Not Found",
+        response->local_buffer);
+  }
 
-	evbuffer_free(response->local_buffer);
+  evbuffer_free(response->local_buffer);
 
-	gettimeofday(&t1, NULL);
-	timersub(&t1, &t0, &tr);
-//	printf("Request processed in: %ld secs, %d usecs\n", tr.tv_sec, tr.tv_usec);
+  gettimeofday(&t1, NULL);
+  timersub(&t1, &t0, &tr);
+//  printf("Request processed in: %ld secs, %d usecs\n", tr.tv_sec, tr.tv_usec);
 }
 
 Garland::Route * Garland::Route::matching_route (Request * req)
 {
-	Route * cur_route = this;
+  Route * cur_route = this;
 
-	while (cur_route)
-	{
-		if (req->evHttpRequest->type == cur_route->type)
-			if (cur_route->match_uri(req->evHttpRequest->uri))
-				return cur_route;
-		cur_route = cur_route->next;
-	}
+  while (cur_route)
+  {
+    if (req->evHttpRequest->type == cur_route->type)
+      if (cur_route->match_uri(req->evHttpRequest->uri))
+        return cur_route;
+    cur_route = cur_route->next;
+  }
 
-	return NULL;
+  return NULL;
 }
 
 void Garland::addRequestHandler (RequestHandler newHandler,
-		const char * pattern, enum evhttp_cmd_type type)
+    const char * path, enum evhttp_cmd_type type)
 {
-	Route * new_route = new Route(pattern, type);
+  Route * new_route = new Route(path, type);
 
-	if (currentContext.routes)
-	{
-		Route * cursor = currentContext.routes;
-		while (cursor->next)
-			cursor = cursor->next;
-		cursor->next = new_route;
-	}
-	else
-	{
-		currentContext.routes = new_route;
-	}
+  if (currentContext.routes)
+  {
+    Route * cursor = currentContext.routes;
+    while (cursor->next)
+      cursor = cursor->next;
+    cursor->next = new_route;
+  }
+  else
+  {
+    currentContext.routes = new_route;
+  }
 
-	new_route->handler = newHandler;
+  new_route->handler = newHandler;
 }

@@ -26,9 +26,7 @@
  * Author      : MarMarAba
  * Version     : 0.5
  * Copyright   : Copyright (c) 2014 MarMarAba
- * Description : Simple free and open source web application mini REST
- * 							 framework based on Bogart, inspired by Sinatra, and written
- * 							 in C++.
+ * Description : Implementation of the functions for the class Request.
  * ============================================================================
  */
 
@@ -38,29 +36,30 @@
 
 Garland::Request::Request (struct evhttp_request *ev_req)
 {
-	init(ev_req);
+  init(ev_req);
 }
 
 void Garland::Request::init (struct evhttp_request * ev_req)
 {
-	evHttpRequest = ev_req;
+  evHttpRequest = ev_req;
 
-	uriInfo = evhttp_request_get_evhttp_uri(ev_req);
+  uriInfo = evhttp_request_get_evhttp_uri(ev_req);
 
-	uriString = evhttp_request_get_uri(ev_req);
-//	uriInfoScheme = evhttp_request_get_uri(uriInfo);
-	uriInfoScheme = "\0";
-	uriInfoUser = evhttp_uri_get_userinfo(uriInfo);
-	uriInfoHost = ev_req->remote_host;
-	uriInfoPort = ev_req->remote_port;
-	uriInfoPath = evhttp_uri_get_path(uriInfo);
-	uriInfoQuery = evhttp_uri_get_query(uriInfo);
-	uriInfoFragment = evhttp_uri_get_fragment(uriInfo);
+  // FIXME: Must assign values properly
+  uriString = evhttp_request_get_uri(ev_req);
+//  FIXME: uriInfoScheme = evhttp_request_get_uri(uriInfo);
+  uriInfoScheme = "\0";
+  uriInfoUser = evhttp_uri_get_userinfo(uriInfo);
+  uriInfoHost = ev_req->remote_host;
+  uriInfoPort = ev_req->remote_port;
+  uriInfoPath = evhttp_uri_get_path(uriInfo);
+  uriInfoQuery = evhttp_uri_get_query(uriInfo);
+  uriInfoFragment = evhttp_uri_get_fragment(uriInfo);
 }
 
 Garland::Request::~Request ()
 {
-	if (evHttpRequest)
-		free(evHttpRequest);
+  if (evHttpRequest)
+    free(evHttpRequest);
 }
 

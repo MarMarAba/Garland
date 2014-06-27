@@ -26,7 +26,8 @@
  * Author      : MarMarAba
  * Version     : 0.5
  * Copyright   : Copyright (c) 2014 MarMarAba
- * Description : Header file for all the project. It contains the
+ * Description : Header file for all the project. I contains the declaration of
+ *               the main Garland class and all its nested classes.
  * ============================================================================
  */
 
@@ -64,172 +65,170 @@
 
 class Garland
 {
-	public:
-		/**
-		 * \class Response
-		 *
-		 * \ingroup GarlandHTTPFramework
-		 *
-		 * \brief HTTP Response class
-		 *
-		 * This class contains the information with information
-		 * of the response to be send to the client.
-		 *
-		 * \note Based in Bogart (C Framework), inspired in Sinatra (Ruby Framework)
-		 *
-		 * \author $Author: MarMarAba $
-		 *
-		 * \version $Revision: 0.5 $
-		 *
-		 * \date $Date: 23/06/2014 14:25:07 $
-		 *
-		 * Contact: info@marmaraba.com
-		 *
-		 * $Id: Garland.h, v0.5, 23/06/2014 14:25:07, MarMarAba  $
-		 *
-		 */
+  public:
+    /**
+     * \class Response
+     *
+     * \ingroup GarlandHTTPFramework
+     *
+     * \brief HTTP Response class
+     *
+     * This class contains the information with information
+     * of the response to be send to the client.
+     *
+     * \note Based in Bogart (C Framework), inspired in Sinatra (Ruby Framework)
+     *
+     * \author $Author: MarMarAba $
+     *
+     * \version $Revision: 0.5 $
+     *
+     * \date $Date: 23/06/2014 14:25:07 $
+     *
+     * Contact: info@marmaraba.com
+     *
+     * $Id: Garland.h, v0.5, 23/06/2014 14:25:07, MarMarAba  $
+     *
+     */
 
-	public:
-		class Response
-		{
-			public:
-				Response ();
-				Response (struct evbuffer * buffer);
-				~Response ();
+  public:
+    class Response
+    {
+      public:
+        Response ();
+        Response (struct evbuffer * buffer);
+        ~Response ();
 
-				int code;
-				struct evbuffer * local_buffer;
+        int code;
+        struct evbuffer * local_buffer;
 
-				void setBody (const char * pattern, ...);
+        void setBody (const char * pattern, ...);
 
-			private:
-				void init (struct evbuffer * buffer);
-		};
+      private:
+        void init (struct evbuffer * buffer);
+    };
 
-		/**
-		 * \class Request
-		 *
-		 * \ingroup GarlandHTTPFramework
-		 *
-		 * \brief HTTP Request class
-		 *
-		 * This class contains the information about the request received
-		 * via HTTP.
-		 *
-		 * \note Based in Bogart (C Framework), inspired in Sinatra (Ruby Framework)
-		 *
-		 * \author $Author: MarMarAba $
-		 *
-		 * \version $Revision: 0.5 $
-		 *
-		 * \date $Date: 23/06/2014 14:25:07 $
-		 *
-		 * Contact: info@marmaraba.com
-		 *
-		 * $Id: Garland.h, v0.5, 23/06/2014 14:25:07, MarMarAba  $
-		 *
-		 */
+    /**
+     * \class Request
+     *
+     * \ingroup GarlandHTTPFramework
+     *
+     * \brief HTTP Request class
+     *
+     * This class contains the information about the request received
+     * via HTTP.
+     *
+     * \note Based in Bogart (C Framework), inspired in Sinatra (Ruby Framework)
+     *
+     * \author $Author: MarMarAba $
+     *
+     * \version $Revision: 0.5 $
+     *
+     * \date $Date: 23/06/2014 14:25:07 $
+     *
+     * Contact: info@marmaraba.com
+     *
+     * $Id: Garland.h, v0.5, 23/06/2014 14:25:07, MarMarAba  $
+     *
+     */
 
-	public:
-		class Request
-		{
-			public:
-				Request (struct evhttp_request * ev_req);
-				~Request ();
+  public:
+    class Request
+    {
+      public:
+        Request (struct evhttp_request * ev_req);
+        ~Request ();
 
-				struct evhttp_request * evHttpRequest;
+        struct evhttp_request * evHttpRequest;
 
-				const char * uriString;
-				const struct evhttp_uri * uriInfo;
-				const char * uriInfoFragment;
-				const char * uriInfoHost;
-				const char * uriInfoPath;
-				int uriInfoPort;
-				const char * uriInfoQuery;
-				const char * uriInfoScheme;
-				const char * uriInfoUser;
+        const char * uriString;
+        const struct evhttp_uri * uriInfo;
+        const char * uriInfoFragment;
+        const char * uriInfoHost;
+        const char * uriInfoPath;
+        int uriInfoPort;
+        const char * uriInfoQuery;
+        const char * uriInfoScheme;
+        const char * uriInfoUser;
 
-			private:
-				void init (struct evhttp_request * ev_req);
+      private:
+        void init (struct evhttp_request * ev_req);
 
-		};
+    };
 
-	public:
-		typedef void (*RequestHandler) (Request *, Response *);
+  public:
+    typedef void (*RequestHandler) (Request *, Response *);
 
-	public:
-		Garland (uint16_t port);
-		Garland (const char * bind_address, uint16_t port);
-		~Garland ();
+  public:
+    Garland (uint16_t port);
+    Garland (const char * bind_address, uint16_t port);
+    ~Garland ();
 
-		bool blockingServer;
+    bool blockingServer;
 
-		void startGarland ();
-		void stopGarland ();
-		void addRequestHandler (RequestHandler, const char *,
-				enum evhttp_cmd_type type = EVHTTP_REQ_GET);
+    void startServer ();
+    void stopServer ();
+    void addRequestHandler (RequestHandler, const char *,
+        enum evhttp_cmd_type type = EVHTTP_REQ_GET);
 
-	private:
+  private:
 
-		/**
-		 * \class Route
-		 *
-		 * \ingroup GarlandHTTPFramework
-		 *
-		 * \brief Route
-		 *
-		 * A route join the path received in the request with a callback handler
-		 * added by a final user.
-		 *
-		 * \note Based in Bogart (C Framework), inspired in Sinatra (Ruby Framework)
-		 *
-		 * \author $Author: MarMarAba $
-		 *
-		 * \version $Revision: 0.5 $
-		 *
-		 * \date $Date: 23/06/2014 14:25:07 $
-		 *
-		 * Contact: info@marmaraba.com
-		 *
-		 * $Id: Garland.h, v0.5, 23/06/2014 14:25:07, MarMarAba  $
-		 *
-		 */
+    /**
+     * \class Route
+     *
+     * \ingroup GarlandHTTPFramework
+     *
+     * \brief Route
+     *
+     * A route join the path received in the request with a callback handler
+     * added by a final user.
+     *
+     * \note Based in Bogart (C Framework), inspired in Sinatra (Ruby Framework)
+     *
+     * \author $Author: MarMarAba $
+     *
+     * \version $Revision: 0.5 $
+     *
+     * \date $Date: 23/06/2014 14:25:07 $
+     *
+     * Contact: info@marmaraba.com
+     *
+     * $Id: Garland.h, v0.5, 23/06/2014 14:25:07, MarMarAba  $
+     *
+     */
 
-		class Route
-		{
-			public:
-				Route (const char * pattern, enum evhttp_cmd_type type);
-				virtual ~Route ();
+    class Route
+    {
+      public:
+        Route (const char * pattern, enum evhttp_cmd_type type);
+        virtual ~Route ();
 
-				Route * next;
-				enum evhttp_cmd_type type;
-				char * pattern;
-				RequestHandler handler;
+        Route * next;
+        enum evhttp_cmd_type type;
+        const char * pattern;
+        RequestHandler handler;
 
-				bool match_uri (const char * uri);
-				Route * matching_route (Request * req);
-		};
+        bool match_uri (const char * uri);
+        Route * matching_route (Request * req);
+    };
 
-	private:
-		typedef struct
-		{
-				uint16_t port;
-				RequestHandler routeNotFound;
-				Route * routes;
-		} GarlandContext;
+  private:
+    typedef struct
+    {
+        uint16_t port;
+        RequestHandler routeNotFound;
+        Route * routes;
+    } GarlandContext;
 
-		bool serverRunning;
-		GarlandContext currentContext;
-		struct event_base * eventBase;
-		struct evhttp * httpServer;
+    bool serverRunning;
+    GarlandContext currentContext;
+    struct event_base * eventBase;
+    struct evhttp * httpServer;
 
-		void initializeGarland (const char * bindAddress, uint16_t port);
-		void launchEventloop ();
+    void initializeGarland (const char * bindAddress, uint16_t port);
+    void launchEventloop ();
 
-		static void voidHandler (Request * request, Response * response);
-		static void newRequestCB (struct evhttp_request * evReq, void * context);
-
-
+    static void voidHandler (Request * request, Response * response);
+    static void newRequestCB (struct evhttp_request * evReq, void * context);
 };
 
 #endif /* GARLAND_H_ */

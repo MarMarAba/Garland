@@ -27,8 +27,8 @@
  * Version     : 0.5
  * Copyright   : Copyright (c) 2014 MarMarAba
  * Description : Simple free and open source web application mini REST
- * 							 framework based on Bogart, inspired by Sinatra, and written
- * 							 in C++.
+ *                framework based on Bogart, inspired by Sinatra, and written
+ *                in C++.
  * ============================================================================
  */
 
@@ -42,39 +42,47 @@ using namespace std;
 
 void get_hello (Garland::Request * request, Garland::Response * response)
 {
-	response->code = HTTP_OK;
+  response->code = HTTP_OK;
+  response->setBody("Received Hello via GET.");
+  return;
+}
 
-	// scheme://[[userinfo]@]foo.com[:port]]/[path][?query][#fragment]
-
-	response->setBody("uri: ");
-	response->setBody(request->uriString);
-	response->setBody("scheme: ");
-	response->setBody(evhttp_uri_get_scheme(request->uriInfo));
-	response->setBody("\nuser: ");
-	response->setBody(request->uriInfoUser);
-	response->setBody("\nhost: ");
-	response->setBody(request->uriInfoHost);
-	response->setBody("\n\nport: ");
-	response->setBody(reinterpret_cast<char*>(&request->uriInfoPort));
-	response->setBody("\npath: ");
-	response->setBody(request->uriInfoPath);
-	response->setBody("\nquery: ");
-	response->setBody(request->uriInfoQuery);
-	response->setBody("\nfragment: ");
-	response->setBody(request->uriInfoFragment);
-
-	return;
+void post_hello (Garland::Request * request, Garland::Response * response)
+{
+  response->code = HTTP_OK;
+  response->setBody("Received Hello via POST.");
+  return;
 }
 
 int main (void)
 {
 
-	Garland newServer(3333);
+  Garland newServer(3333);
 
-	newServer.addRequestHandler(get_hello, "/hel*");
+  // scheme://[[userinfo]@]foo.com[:port]]/[path][?query][#fragment]
+  newServer.addRequestHandler(get_hello, "/hello");
+  newServer.addRequestHandler(post_hello, "/hello", EVHTTP_REQ_POST);
 
-	newServer.blockingServer = true;
-	newServer.startGarland();
+  newServer.blockingServer = false;
+  newServer.startServer();
 
-	return 0;
+  while (true)
+  {
+    switch (getc(stdin))
+    {
+      case 'r': // run
+        newServer.startServer();
+        break;
+      case 's': // stop
+        newServer.stopServer();
+        break;
+      case 'q': // quit
+        newServer.stopServer();
+        return 0;
+      default:
+        break;
+    }
+  }
+
+  return 0;
 }

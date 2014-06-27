@@ -26,9 +26,7 @@
  * Author      : MarMarAba
  * Version     : 0.5
  * Copyright   : Copyright (c) 2014 MarMarAba
- * Description : Simple free and open source web application mini REST
- * 							 framework based on Bogart, inspired by Sinatra, and written
- * 							 in C++.
+ * Description : Implementation of the functions for the class Route.
  * ============================================================================
  */
 
@@ -38,44 +36,43 @@
 
 Garland::Route::Route (const char * new_pattern, enum evhttp_cmd_type new_type)
 {
-	pattern = strdup(new_pattern);
-	type = new_type;
-	handler = nullptr;
-	next = nullptr;
+  pattern = strdup(new_pattern);
+  type = new_type;
+  handler = nullptr;
+  next = nullptr;
 }
 
 Garland::Route::~Route ()
 {
-	if (next)
-		delete next;
+  if (next)
+    delete next;
 }
-
 
 bool Garland::Route::match_uri (const char * uri)
 {
-	while (*pattern && *uri)
-	{
-		if (*pattern == *uri)
-		{
-			pattern++;
-			uri++;
-		}
-		else
-			if (*pattern == '*')
-			{
-				if (*uri == '/' || !*(uri + 1))
-				{
-					pattern++;
-				}
-				else
-				{
-					uri++;
-				}
-			}
-			else
-			{
-				return false;
-			}
-	}
-	return (!*pattern && !*uri) || (!*pattern && *uri);
+  while (*pattern && *uri)
+  {
+    if (*pattern == *uri)
+    {
+      pattern++;
+      uri++;
+    }
+    else
+      if (*pattern == '*')
+      {
+        if (*uri == '/' || !*(uri + 1))
+        {
+          pattern++;
+        }
+        else
+        {
+          uri++;
+        }
+      }
+      else
+      {
+        return false;
+      }
+  }
+  return (!*pattern && !*uri) || (!*pattern && *uri);
 }

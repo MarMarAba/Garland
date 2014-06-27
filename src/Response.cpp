@@ -26,9 +26,7 @@
  * Author      : MarMarAba
  * Version     : 0.5
  * Copyright   : Copyright (c) 2014 MarMarAba
- * Description : Simple free and open source web application mini REST
- * 							 framework based on Bogart, inspired by Sinatra, and written
- * 							 in C++.
+ * Description : Implementation of the functions for the class Response.
  * ============================================================================
  */
 
@@ -36,28 +34,29 @@
 
 Garland::Response::Response ()
 {
-	init (evbuffer_new());
+  init(evbuffer_new());
 }
+
 Garland::Response::Response (struct evbuffer * buffer)
 {
-	init (buffer);
+  init(buffer);
 }
 
 void Garland::Response::init (struct evbuffer * buffer)
 {
-	code = 200;
-	local_buffer = buffer;
+  code = 200;
+  local_buffer = buffer;
 }
 
 Garland::Response::~Response ()
 {
-	if (local_buffer)
-		evbuffer_free(local_buffer);
+  if (local_buffer)
+    evbuffer_free(local_buffer);
 }
 
 void Garland::Response::setBody (const char * pattern, ...)
 {
-	va_list ap;
-	va_start(ap, pattern);
-	evbuffer_add_vprintf(local_buffer, pattern, ap);
+  va_list ap;
+  va_start(ap, pattern);
+  evbuffer_add_vprintf(local_buffer, pattern, ap);
 }
