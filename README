@@ -1,0 +1,17 @@
+/*
+ * ============================================================================
+ * Name        : GarlandHTTPFramework
+ * Author      : MarMarAba
+ * Version     : 0.5
+ * Copyright   : Copyright (c) 2014 MarMarAba
+ * Description : Simple free and open source web application mini REST
+ *               framework based on Bogart, inspired by Sinatra, and written
+ * 				in C++.
+ * ============================================================================
+ */
+
+ 
+ The path matching is this way:
+ 
+ 
+ Only the first match will be processed, in insertion order. 
