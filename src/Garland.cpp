@@ -114,6 +114,7 @@ void Garland::launchEventloop ()
 void Garland::voidHandler (Request * request, Response * response)
 {
   response->code = HTTP_NOTFOUND;
+  response->brief = "Not found";
   response->setBody("Not found");
 }
 
@@ -126,23 +127,23 @@ void Garland::newRequestCB (struct evhttp_request * ev_req, void * context)
   gettimeofday(&t0, NULL);
 
   Request * request = new Request(ev_req);
-  Response * response = new Response(evbuffer_new());
+  Response * response = new Response(request->getEVRequest());
 
   Route * matched_route = inUseContext->routes->matching_route(request);
 
   if (matched_route)
   {
     matched_route->handler(request, response);
-    evhttp_send_reply(ev_req, response->code, "OK", response->local_buffer);
+    response->sendReply();
   }
   else
   {
     inUseContext->routeNotFound(request, response);
-    evhttp_send_reply(ev_req, HTTP_NOTFOUND, "Not Found",
-        response->local_buffer);
+    response->sendReply();
   }
 
-  evbuffer_free(response->local_buffer);
+  delete (request);
+  delete (response);
 
   gettimeofday(&t1, NULL);
   timersub(&t1, &t0, &tr);
@@ -155,8 +156,8 @@ Garland::Route * Garland::Route::matching_route (Request * req)
 
   while (cur_route)
   {
-    if (req->evHttpRequest->type == cur_route->type)
-      if (cur_route->match_uri(req->evHttpRequest->uri))
+    if (req->getEVRequest()->type == cur_route->type)
+      if (cur_route->match_uri(req->getEVRequest()->uri))
         return cur_route;
     cur_route = cur_route->next;
   }
@@ -164,8 +165,8 @@ Garland::Route * Garland::Route::matching_route (Request * req)
   return NULL;
 }
 
-void Garland::addRequestHandler (RequestHandler newHandler,
-    const char * path, enum evhttp_cmd_type type)
+void Garland::addRequestHandler (RequestHandler newHandler, const char * path,
+    enum evhttp_cmd_type type)
 {
   Route * new_route = new Route(path, type);
 

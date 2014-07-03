@@ -30,8 +30,6 @@
  * ============================================================================
  */
 
-#include <cstdlib>
-
 #include "include/Garland.h"
 
 Garland::Request::Request (struct evhttp_request *ev_req)
@@ -45,21 +43,53 @@ void Garland::Request::init (struct evhttp_request * ev_req)
 
   uriInfo = evhttp_request_get_evhttp_uri(ev_req);
 
-  // FIXME: Must assign values properly
-  uriString = evhttp_request_get_uri(ev_req);
-//  FIXME: uriInfoScheme = evhttp_request_get_uri(uriInfo);
-  uriInfoScheme = "\0";
-  uriInfoUser = evhttp_uri_get_userinfo(uriInfo);
-  uriInfoHost = ev_req->remote_host;
-  uriInfoPort = ev_req->remote_port;
-  uriInfoPath = evhttp_uri_get_path(uriInfo);
-  uriInfoQuery = evhttp_uri_get_query(uriInfo);
-  uriInfoFragment = evhttp_uri_get_fragment(uriInfo);
+  query_params = (struct evkeyvalq *) malloc(sizeof(struct evkeyvalq));
+  if (evhttp_parse_query_str(evhttp_uri_get_query(uriInfo), query_params))
+    throw 1;
+
+}
+
+struct evhttp_request * Garland::Request::getEVRequest ()
+{
+  return evHttpRequest;
+}
+
+char * Garland::Request::getParam (const char * key)
+{
+  char * string_value;
+  struct evkeyval * cur_param = NULL;
+
+  TAILQ_FOREACH(cur_param, query_params, next)
+  {
+    if (!strcmp(key, cur_param->key))
+    {
+      string_value = cur_param->value;
+      break;
+    }
+  }
+
+  return string_value;
+}
+
+char * Garland::Request::getHeader (const char * key)
+{
+  char * string_value = nullptr;
+
+  const char * str_ptr = evhttp_find_header(evHttpRequest->input_headers, key);
+
+  if (str_ptr)
+    string_value = strdup(str_ptr);
+
+  return string_value;
 }
 
 Garland::Request::~Request ()
 {
-  if (evHttpRequest)
-    free(evHttpRequest);
+  struct evkeyval * evkv_ptr = query_params->tqh_first;
+
+  TAILQ_FOREACH(evkv_ptr, query_params, next)
+    free(evkv_ptr);
+
+  free(query_params);
 }
 

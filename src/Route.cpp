@@ -71,8 +71,8 @@ bool Garland::Route::match_uri (const char * uri)
       }
       else
       {
-        return false;
+        return (false);
       }
   }
-  return (!*pattern && !*uri) || (!*pattern && *uri);
+  return ((!*pattern && !*uri) || (!*pattern && *uri));
 }

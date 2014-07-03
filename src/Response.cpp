@@ -32,31 +32,33 @@
 
 #include "include/Garland.h"
 
-Garland::Response::Response ()
-{
-  init(evbuffer_new());
-}
-
-Garland::Response::Response (struct evbuffer * buffer)
-{
-  init(buffer);
-}
-
-void Garland::Response::init (struct evbuffer * buffer)
+Garland::Response::Response (struct evhttp_request * req)
 {
   code = 200;
-  local_buffer = buffer;
+  request = req;
+  buffer = evbuffer_new();
 }
 
 Garland::Response::~Response ()
 {
-  if (local_buffer)
-    evbuffer_free(local_buffer);
+  if (buffer)
+    evbuffer_free (buffer);
 }
 
-void Garland::Response::setBody (const char * pattern, ...)
+void Garland::Response::sendReply ()
+{
+  evhttp_send_reply(request, code, brief.c_str(), buffer);
+}
+
+int Garland::Response::setHeader (const char * key, const char * value)
+{
+  return evhttp_add_header(evhttp_request_get_output_headers(request), key,
+      value);
+}
+
+int Garland::Response::setBody (const char * pattern, ...)
 {
   va_list ap;
   va_start(ap, pattern);
-  evbuffer_add_vprintf(local_buffer, pattern, ap);
+  return evbuffer_add_vprintf(buffer, pattern, ap);
 }

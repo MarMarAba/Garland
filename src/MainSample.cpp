@@ -33,7 +33,6 @@
  */
 
 #include <cstdlib>
-#include <stdlib.h>
 #include <cstdio>
 #include <string>
 #include "include/Garland.h"
@@ -57,7 +56,7 @@ void post_hello (Garland::Request * request, Garland::Response * response)
 int main (void)
 {
 
-  Garland newServer(3333);
+  Garland newServer("localhost", 3333);
 
   // scheme://[[userinfo]@]foo.com[:port]]/[path][?query][#fragment]
   newServer.addRequestHandler(get_hello, "/hello");

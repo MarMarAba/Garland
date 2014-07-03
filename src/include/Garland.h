@@ -36,6 +36,12 @@
 
 #include <evhttp.h>
 #include <cstdlib>
+#include <list>
+#include <string>
+#include <string.h>
+#include <tuple>
+
+#include "SysQueue.h"
 
 /**
  * \class Garland
@@ -94,17 +100,26 @@ class Garland
     class Response
     {
       public:
-        Response ();
-        Response (struct evbuffer * buffer);
+        Response (struct evhttp_request * req);
         ~Response ();
 
         int code;
-        struct evbuffer * local_buffer;
+        std::string brief;
 
-        void setBody (const char * pattern, ...);
+        /**
+         * Send an HTML reply to the client.
+         *
+         * It uses the data given by the user with the setHeader and setBody
+         * methods.
+         *
+         */
+        void sendReply ();
+        int setHeader (const char * key, const char * value);
+        int setBody (const char * pattern, ...);
 
       private:
-        void init (struct evbuffer * buffer);
+        struct evbuffer * buffer;
+        struct evhttp_request * request;
     };
 
     /**
@@ -137,22 +152,20 @@ class Garland
       public:
         Request (struct evhttp_request * ev_req);
         ~Request ();
+        char * getHeader (const char * key);
+        char * getParam (const char * key);
 
-        struct evhttp_request * evHttpRequest;
+        struct evhttp_request * getEVRequest ();
 
-        const char * uriString;
-        const struct evhttp_uri * uriInfo;
-        const char * uriInfoFragment;
-        const char * uriInfoHost;
-        const char * uriInfoPath;
-        int uriInfoPort;
-        const char * uriInfoQuery;
-        const char * uriInfoScheme;
-        const char * uriInfoUser;
 
       private:
         void init (struct evhttp_request * ev_req);
 
+        struct evhttp_request * evHttpRequest;
+        const struct evhttp_uri * uriInfo;
+        struct evkeyvalq * query_params;
+        typedef std::tuple<std::string, std::string> header_kv;
+        typedef std::list<header_kv> headers_list;
     };
 
   public:
